@@ -52,7 +52,7 @@ def evaluate(mnist,i):
 def main(argv=None):
     mnist = input_data.read_data_sets('/path/to/MNIST_data', one_hot=True)
     #输入要选择的测试的测试集下标
-    evaluate(mnist,26)
+    evaluate(mnist,25)
 
 
 if __name__ == '__main__':
