@@ -40,5 +40,5 @@ def alex_net(X,Weights,biases,dropout):
     #构造输出层
     result = tf.matmul(fc2,Weights['wo']+biases['fo'])
 
-    return result
+    return result,fc2
 
