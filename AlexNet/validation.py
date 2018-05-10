@@ -30,8 +30,8 @@ def evaluate(mnist):
                                                           train_net.NUM_CHANNELS))
         validata_feed = {x: reshape_xs, y_: mnist.validation.labels}
 
-        y,f = inference.alex_net(X=x,Weights=train_net.Weights,biases=train_net.biases,dropout=train_net.DROPOUT)
-
+        y,f = inference.alex_net(X=x,Weights=train_net.Weights,biases=train_net.biases,dropout=train_net.DROPOUT,regularizer=None)
+        #tf.argmax()返回向量中最大值位置,tf.equal()返回两个向量对应位置比较结果 返回值为布尔类型
         correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
         #数据类型转换
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
@@ -50,13 +50,12 @@ def evaluate(mnist):
                 if ckpt and ckpt.model_checkpoint_path:
                     #ckpt.model_checkpoint_path返回最新的模型变量取值的路径
                     saver.restore(sess, ckpt.model_checkpoint_path)
-                    print([ckpt.model_checkpoint_path])
-                    print('\n')
-                    print(ckpt)
+
                     global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
-                    accuracy_score = sess.run(accuracy, feed_dict=validata_feed)
+                    print('前层特征：')
                     print(sess.run(f,feed_dict=validata_feed))
-                    print('After %s traing steps validation accuracy is %g' % (global_step, accuracy_score))
+
+                    print('After %s traing steps validation accuracy is %g' % (global_step, sess.run(accuracy, feed_dict=validata_feed)))
                 else:
                     print('NO checkpoint file found')
                     return

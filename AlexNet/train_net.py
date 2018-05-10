@@ -11,15 +11,15 @@ BATCH_SIZE = 64
 LEARNING_RATE_BASE = 0.0001
 LEARNING_RATE_DECAY = 0.99
 REGULARAZTION_RATE = 0.0005
-TRAINING_STEPS = 60000
-MOVING_AVERAGE_DECAY = 0.96
+TRAINING_STEPS = 30000
+MOVING_AVERAGE_DECAY = 0.99
 DROPOUT = 0.6
 
 NUM_CHANNELS = 1
 IMAGE_SIZE = 28
 OUTPUT_NODE = 10
 
-MODEL_SAVE_PATH = '/path/alex_net/model2/'
+MODEL_SAVE_PATH = 'model/'
 MODEL_NAME = 'model.ckpt'
 
 Weights = {
@@ -56,7 +56,8 @@ def train(mnist):
 
     regularizer = tf.contrib.layers.l2_regularizer(REGULARAZTION_RATE)
 
-    y = inference.alex_net(X=x,Weights=Weights,biases=biases,dropout=DROPOUT)
+
+    y,_ = inference.alex_net(X=x,Weights=Weights,biases=biases,dropout=DROPOUT,regularizer=None)
 
     global_step = tf.Variable(0,trainable=False)
     #定义滑动平均

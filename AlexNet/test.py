@@ -21,7 +21,7 @@ def evaluate(mnist,i):
 
         test_feed = {x: reshape_xs}
 
-        y,f = inference.alex_net(X=x,Weights=train_net.Weights,biases=train_net.biases,dropout=train_net.DROPOUT)
+        y,f = inference.alex_net(X=x,Weights=train_net.Weights,biases=train_net.biases,dropout=train_net.DROPOUT,regularizer=None)
 
         result = tf.argmax(y,1)
 
