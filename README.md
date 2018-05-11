@@ -1,5 +1,5 @@
 # Alexnet test
-handwriting digital recognition using alexnet
+handwriting digital recognition using alexnet.
 how to use this model?
   train: python3 train_net.py
   validation:python3 validation.py
