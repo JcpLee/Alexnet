@@ -25,12 +25,9 @@ def evaluate(mnist):
                                                           train_net.IMAGE_SIZE,
                                                           train_net.NUM_CHANNELS))
 
-        x_pred = np.reshape(mnist.test.images[0],(1,train_net.IMAGE_SIZE,
-                                                          train_net.IMAGE_SIZE,
-                                                          train_net.NUM_CHANNELS))
         validata_feed = {x: reshape_xs, y_: mnist.validation.labels}
 
-        y,f = inference.alex_net(X=x,Weights=train_net.Weights,biases=train_net.biases,dropout=train_net.DROPOUT,regularizer=None)
+        y,f = inference.alex_net(X=x,output=10,dropout=train_net.DROPOUT,regularizer=None)
         #tf.argmax()返回向量中最大值位置,tf.equal()返回两个向量对应位置比较结果 返回值为布尔类型
         correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
         #数据类型转换

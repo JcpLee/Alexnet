@@ -1,5 +1,6 @@
 # -*- coding:UTF-8 -*-
 from tensorflow.examples.tutorials.mnist import input_data
+from tensorflow.python.framework import graph_util
 import tensorflow as tf
 import inference
 import os
@@ -9,11 +10,11 @@ import numpy as np
 
 BATCH_SIZE = 64
 LEARNING_RATE_BASE = 0.0001
-LEARNING_RATE_DECAY = 0.99
+LEARNING_RATE_DECAY = 0.92
 REGULARAZTION_RATE = 0.0005
 TRAINING_STEPS = 30000
 MOVING_AVERAGE_DECAY = 0.99
-DROPOUT = 0.6
+DROPOUT = 0.8
 
 NUM_CHANNELS = 1
 IMAGE_SIZE = 28
@@ -22,29 +23,12 @@ OUTPUT_NODE = 10
 MODEL_SAVE_PATH = 'model/'
 MODEL_NAME = 'model.ckpt'
 
-Weights = {
-    # 'wc1':tf.get_variable([3,3,1,64],initializer=tf.truncated_normal_initializer(stddev=0.1)),
-    'wc1': tf.Variable(tf.truncated_normal([3, 3, 1, 64], stddev=0.1)),
-    'wc2': tf.Variable(tf.truncated_normal([3, 3, 64, 128], stddev=0.1)),
-    'wc3': tf.Variable(tf.truncated_normal([3, 3, 128, 256], stddev=0.1)),
-    'wf1': tf.Variable(tf.truncated_normal([4 * 4 * 256, 1024], stddev=0.1)),
-    'wf2': tf.Variable(tf.truncated_normal([1024, 1024], stddev=0.1)),
-    'wo': tf.Variable(tf.truncated_normal([1024, 10], stddev=0.1))
-}
-
-biases = {
-    'bc1': tf.Variable(tf.zeros([64])),
-    'bc2': tf.Variable(tf.zeros([128])),
-    'bc3': tf.Variable(tf.zeros([256])),
-    'bf1': tf.Variable(tf.zeros([1024])),
-    'bf2': tf.Variable(tf.zeros([1024])),
-    'fo': tf.Variable(tf.zeros([OUTPUT_NODE]))
-}
 
 def train(mnist):
 
+    #定义预输入
     x = tf.placeholder(tf.float32,
-                       [BATCH_SIZE,
+                       [None,
                        IMAGE_SIZE,
                        IMAGE_SIZE,
                        NUM_CHANNELS],
@@ -53,12 +37,14 @@ def train(mnist):
                         [None,OUTPUT_NODE],
                         name='y-input')
 
-
+    #定义正则化
     regularizer = tf.contrib.layers.l2_regularizer(REGULARAZTION_RATE)
 
+    #调用神经网计算输出结果
+    y,_ = inference.alex_net(X=x,output=OUTPUT_NODE,dropout=DROPOUT,regularizer=None)
+    result = tf.argmax(y,1,name='out')
 
-    y,_ = inference.alex_net(X=x,Weights=Weights,biases=biases,dropout=DROPOUT,regularizer=None)
-
+    #定义统计训练轮数的全局变量
     global_step = tf.Variable(0,trainable=False)
     #定义滑动平均
     variable_averages = tf.train.ExponentialMovingAverage(MOVING_AVERAGE_DECAY,global_step)
@@ -69,7 +55,7 @@ def train(mnist):
 
     # loss = cross_entropy_mean+tf.add_n(tf.get_collection('losses'))
     loss = cross_entropy_mean
-
+    #定义学习率变化
     learning_rate = tf.train.exponential_decay(
         LEARNING_RATE_BASE,
         global_step,
@@ -79,6 +65,7 @@ def train(mnist):
 
     train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss,global_step=global_step)
     # train_step = tf.train.MomentumOptimizer(learning_rate,0.9).minimize(loss,global_step=global_step)
+    #同时更新滑动平均和网络参数
     with tf.control_dependencies([train_step,variable_averages_op]):
         train_op = tf.no_op(name='train')
 
@@ -96,10 +83,13 @@ def train(mnist):
 
             if i%100 == 0:
                 print('After %d training steps,loss on training batch is %g'%(step,loss_value))
+                #保存checkpoint文件
                 saver.save(sess,os.path.join(MODEL_SAVE_PATH,MODEL_NAME),global_step = global_step)
-        # xa,ya = mnist.train.images,mnist.train.labels
-        # _, loss_value, step = sess.run([train_op, loss, global_step], feed_dict={x: xa, y_: ya})
-        # print('After %d training steps,loss on training set is %g' % (step, loss_value))
+                #保存pb文件
+                output_graph_def = graph_util.convert_variables_to_constants(sess, sess.graph_def, ['out'])
+                with tf.gfile.GFile('model_pb/combined_model.pb', 'wb') as f:
+                    f.write(output_graph_def.SerializeToString())
+
 def main(argv = None):
     mnist = input_data.read_data_sets('/path/to/MNIST_data',one_hot=True)
     train(mnist)

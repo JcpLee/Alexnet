@@ -14,14 +14,8 @@ def evaluate(mnist,i):
                             train_net.IMAGE_SIZE,
                             train_net.NUM_CHANNELS],
                            name='x-input')
-        reshape_xs = np.reshape(mnist.test.images[i], (1,
-                                                          train_net.IMAGE_SIZE,
-                                                          train_net.IMAGE_SIZE,
-                                                          train_net.NUM_CHANNELS))
 
-        test_feed = {x: reshape_xs}
-
-        y,f = inference.alex_net(X=x,Weights=train_net.Weights,biases=train_net.biases,dropout=train_net.DROPOUT,regularizer=None)
+        y,f = inference.alex_net(X=x,output=10,dropout=train_net.DROPOUT,regularizer=None)
 
         result = tf.argmax(y,1)
 
@@ -40,6 +34,13 @@ def evaluate(mnist,i):
                 saver.restore(sess, ckpt.model_checkpoint_path)
 
                 global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
+                reshape_xs = np.reshape(mnist.test.images[i], (1,
+                                                                   train_net.IMAGE_SIZE,
+                                                                   train_net.IMAGE_SIZE,
+                                                                   train_net.NUM_CHANNELS))
+
+                test_feed = {x: reshape_xs}
+
                 result = sess.run(result, feed_dict=test_feed)
 
                 print('After %s traing steps test result is %g' % (global_step, result))
