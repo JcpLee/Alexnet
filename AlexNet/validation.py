@@ -13,7 +13,7 @@ def evaluate(mnist):
     # with tf.Graph().as_default() as g:
         # x = tf.placeholder(tf.float32, [None, mnist_inferenceLeNet.INPUT_NODE], name='x-input')
         x = tf.placeholder(tf.float32,
-                           [mnist.validation.num_examples,
+                           [None,
                             train_net.IMAGE_SIZE,
                             train_net.IMAGE_SIZE,
                             train_net.NUM_CHANNELS],
